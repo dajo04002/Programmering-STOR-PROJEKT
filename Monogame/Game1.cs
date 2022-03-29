@@ -1,39 +1,40 @@
-﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace Monogame
 {
     public class Game1 : Game
-    {
+    { 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        Texture2D skepp;
+        Texture2D rect;
+
+        Rectangle recta = new Rectangle(50,50,500,500);
+
+        Vector2 rectPos = new Vector2(100, 100);
 
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-
             
         }
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             base.Initialize();
+
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            Texture2D skepp;
+            rect = new Texture2D(GraphicsDevice, 20, 20);
             skepp = Content.Load<Texture2D>("skepp");
-
-            Vector2 skeppPos = new Vector2(100,300);
-
-            // TODO: use this.Content to load your game content here
         }
 
         protected override void Update(GameTime gameTime)
@@ -41,19 +42,16 @@ namespace Monogame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
+            GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin();
-            _spriteBatch.Draw(skepp, skeppPos, Color.White);
+            _spriteBatch.Draw(skepp,rectPos, recta, Color.White);
             _spriteBatch.End();
+
             base.Draw(gameTime);
         }
     }
