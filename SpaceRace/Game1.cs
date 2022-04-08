@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -20,16 +20,19 @@ namespace SpaceRace
         private Rectangle debrisBox;
 
 
-        private List<Vector2> debris;
-        private List<Rectangle> testList;
 
-        private int debrisTimer = 60;
+        private List<Vector2> debrisLeft;
+        private List<Vector2> debrisRight;
+
+        private int debrisTimer = 15;
+        private int debrisDelay = 15;
         private int p1StartX = 250;
         private int p2StartX = 500;
-        private int StartY = 445;
-
+        private int startY = 445;
+        
         private bool p1Hit;
         private bool p2Hit;
+        private bool isPlaying;
 
         Random random = new Random();
         public Game1()
@@ -43,10 +46,11 @@ namespace SpaceRace
 
         protected override void Initialize()
         {
-            p1 = new Vector2(p1StartX, StartY);
-            p2 = new Vector2(p2StartX, StartY);
+            p1 = new Vector2(p1StartX, startY);
+            p2 = new Vector2(p2StartX, startY);
 
-            debris = new List<Vector2>();
+            debrisLeft = new List<Vector2>();
+            debrisRight = new List<Vector2>();
 
             base.Initialize();
         }
@@ -70,6 +74,16 @@ namespace SpaceRace
         protected override void Update(GameTime gameTime)
         {
             var state = Keyboard.GetState();
+
+            if(state.IsKeyDown(Keys.Enter) && !isPlaying)
+            {
+                isPlaying = true;
+            }
+
+            if (!isPlaying)
+            {
+                return;
+            }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.Escape))
             {
@@ -102,20 +116,20 @@ namespace SpaceRace
 
             if (p1.Y < 0)
             {
-                p1.Y = StartY;
+                p1.Y = startY;
             }
-            else if (p1.Y > StartY)
+            else if (p1.Y > startY)
             {
-                p1.Y = StartY;
+                p1.Y = startY;
             }
 
             if (p2.Y < 0)
             {
-                p2.Y = StartY;
+                p2.Y = startY;
             }
-            else if (p2.Y > StartY)
+            else if (p2.Y > startY)
             {
-                p2.Y = StartY;
+                p2.Y = startY;
             }
 
             //
@@ -123,14 +137,21 @@ namespace SpaceRace
             debrisTimer--;
             if (debrisTimer <= 0)
             {
-                debrisTimer = 20;
-                debris.Add(new Vector2(0, random.Next(0, 400)));
+                debrisTimer = debrisDelay;
+                debrisLeft.Add(new Vector2(0, random.Next(0, 400)));
+                debrisRight.Add(new Vector2(800, random.Next(0, 400)));
             }
 
-            for (int i = 0; i < debris.Count; i++)
+            for (int i = 0; i < debrisLeft.Count; i++)
             {
-                debris[i] = debris[i] + new Vector2(1, 0);
+                debrisLeft[i] = debrisLeft[i] + new Vector2(2, 0);
             }
+
+            for (int i = 0; i < debrisRight.Count; i++)
+            {
+                debrisRight[i] = debrisRight[i] + new Vector2(-2, 0);
+            }
+
 
             //
 
@@ -140,8 +161,7 @@ namespace SpaceRace
             p1Hit = false;
             p2Hit = false;
 
-
-            foreach (var debris in debris)
+            foreach (var debris in debrisLeft)
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -155,7 +175,7 @@ namespace SpaceRace
                 }
             }
 
-            foreach (var debris in debris)
+            foreach (var debris in debrisLeft)
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -169,6 +189,46 @@ namespace SpaceRace
                 }
             }
 
+            foreach (var debris in debrisRight)
+            {
+                Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
+
+                var kollision = Intersection(p1Box, debrisBox);
+
+                if (kollision.Width > 0 && kollision.Height > 0)
+                {
+                    Rectangle r1 = Normalize(p1Box, kollision);
+                    Rectangle r2 = Normalize(debrisBox, kollision);
+                    p1Hit = TestCollision(skeppTexture, r1, debrisTexture, r2);
+                }
+            }
+
+            foreach (var debris in debrisRight)
+            {
+                Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
+
+                var kollision = Intersection(p2Box, debrisBox);
+
+                if (kollision.Width > 0 && kollision.Height > 0)
+                {
+                    Rectangle r1 = Normalize(p2Box, kollision);
+                    Rectangle r2 = Normalize(debrisBox, kollision);
+                    p2Hit = TestCollision(skeppTexture, r1, debrisTexture, r2);
+                }
+            }
+
+            if (p1Hit)
+            {
+                p1.X = p1StartX;
+                p1.Y = startY;
+            }
+
+            if (p2Hit)
+            {
+                p2.X = p2StartX;
+                p2.Y = startY;
+            }
+
             base.Update(gameTime);
 
         }
@@ -178,25 +238,26 @@ namespace SpaceRace
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             sprites.Begin();
-            
-
-            if (p1Hit)
+            if (isPlaying)
             {
-                sprites.DrawString(font, "P1 DIED", new Vector2(p1StartX, 0), Color.White);
+                sprites.Draw(skeppTexture, p1, Color.White);
+                sprites.Draw(skeppTexture, p2, Color.White);
+
+                foreach (var debris in debrisLeft)
+                {
+                    sprites.Draw(debrisTexture, debris, Color.White);
+                }
+
+                foreach (var debris in debrisRight)
+                {
+                    sprites.Draw(debrisTexture, debris, Color.White);
+                }
+            }
+            else
+            {
+                sprites.DrawString(font, "Press ENTER to start!", new Vector2(250, 200), Color.White);
             }
 
-            if (p2Hit)
-            {
-                sprites.DrawString(font, "P2 DIED", new Vector2(p2StartX, 0), Color.White);
-            }
-
-            sprites.Draw(skeppTexture, p1, Color.White);
-            sprites.Draw(skeppTexture, p2, Color.White);
-
-            foreach (var debris in debris)
-            {
-                sprites.Draw(debrisTexture, debris, Color.White);
-            }
             sprites.End();
             base.Draw(gameTime);
         }
