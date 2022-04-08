@@ -12,14 +12,10 @@ namespace SpaceRace
         private SpriteFont font;
         private Texture2D skeppTexture;
         private Texture2D debrisTexture;
+        private Texture2D timerTexture;
         private Vector2 p1;
         private Vector2 p2;
-        private Rectangle test;
-        private Rectangle p1Box;
-        private Rectangle p2Box;
-        private Rectangle debrisBox;
-
-
+        private Vector2 spelTimer;
 
         private List<Vector2> debrisLeft;
         private List<Vector2> debrisRight;
@@ -29,6 +25,7 @@ namespace SpaceRace
         private int p1StartX = 250;
         private int p2StartX = 500;
         private int startY = 445;
+        private int spelTid = 3600;
         
         private bool p1Hit;
         private bool p2Hit;
@@ -48,6 +45,7 @@ namespace SpaceRace
         {
             p1 = new Vector2(p1StartX, startY);
             p2 = new Vector2(p2StartX, startY);
+            spelTimer = new Vector2(380, 0);
 
             debrisLeft = new List<Vector2>();
             debrisRight = new List<Vector2>();
@@ -62,6 +60,7 @@ namespace SpaceRace
             font = Content.Load<SpriteFont>("Consolas16");
             skeppTexture = Content.Load<Texture2D>("skepp");
             debrisTexture = Content.Load<Texture2D>("debris");
+            timerTexture = Content.Load<Texture2D>("timer");
 
             base.LoadContent();
         }
@@ -84,6 +83,17 @@ namespace SpaceRace
             {
                 return;
             }
+
+            spelTid--;
+            if (spelTid <= 0)
+            {
+                isPlaying = false;
+                spelTid = 3600;
+                Reset();
+            }
+
+            spelTimer = spelTimer + new Vector2(0, 800 / 3600f);
+
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.Escape))
             {
@@ -243,6 +253,8 @@ namespace SpaceRace
                 sprites.Draw(skeppTexture, p1, Color.White);
                 sprites.Draw(skeppTexture, p2, Color.White);
 
+                sprites.Draw(timerTexture, spelTimer, Color.White);
+
                 foreach (var debris in debrisLeft)
                 {
                     sprites.Draw(debrisTexture, debris, Color.White);
@@ -261,6 +273,18 @@ namespace SpaceRace
             sprites.End();
             base.Draw(gameTime);
         }
+
+        private void Reset()
+        {
+            debrisLeft.Clear();
+            debrisRight.Clear();
+            p1.X = p1StartX;
+            p1.Y = startY;
+            p2.X = p2StartX;
+            p2.Y = startY;
+
+        }
+
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
         {
             int x1 = Math.Max(r1.Left, r2.Left);
