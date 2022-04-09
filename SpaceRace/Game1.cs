@@ -13,6 +13,11 @@ namespace SpaceRace
         private Texture2D skeppTexture;
         private Texture2D debrisTexture;
         private Texture2D timerTexture;
+        private Texture2D playActiveTexture;
+        private Texture2D playDullTexture;
+
+        private Rectangle playButtonBox;
+
         private Vector2 p1;
         private Vector2 p2;
         private Vector2 spelTimer;
@@ -25,11 +30,13 @@ namespace SpaceRace
         private int p1StartX = 250;
         private int p2StartX = 500;
         private int startY = 445;
-        private int spelTid = 3600;
+        private int p1Score = 0;
+        private int p2Score = 0;
         
         private bool p1Hit;
         private bool p2Hit;
         private bool isPlaying;
+        private bool active;
 
         Random random = new Random();
         public Game1()
@@ -62,6 +69,11 @@ namespace SpaceRace
             debrisTexture = Content.Load<Texture2D>("debris");
             timerTexture = Content.Load<Texture2D>("timer");
 
+            playActiveTexture = Content.Load<Texture2D>("playButtonActive");
+            playDullTexture = Content.Load<Texture2D>("playButtonDull");
+
+            playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
+
             base.LoadContent();
         }
 
@@ -72,9 +84,9 @@ namespace SpaceRace
 
         protected override void Update(GameTime gameTime)
         {
-            var state = Keyboard.GetState();
+            var keyState = Keyboard.GetState();
 
-            if(state.IsKeyDown(Keys.Enter) && !isPlaying)
+            if(keyState.IsKeyDown(Keys.Enter) && !isPlaying)
             {
                 isPlaying = true;
             }
@@ -84,78 +96,97 @@ namespace SpaceRace
                 return;
             }
 
-            spelTid--;
-            if (spelTid <= 0)
+            if (spelTimer.Y > 480)
             {
-                isPlaying = false;
-                spelTid = 3600;
                 Reset();
             }
 
-            spelTimer = spelTimer + new Vector2(0, 800 / 3600f);
+            spelTimer = spelTimer + new Vector2(0, 0.15f);
 
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Escape))
             {
                 Exit();
             }
 
             //
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.W))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.W))
             {
                 p1.Y--;
             }
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.S))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.A))
+            {
+                p1.X--;
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.S))
             {
                 p1.Y++;
             }
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.Up))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D))
+            {
+                p1.X++;
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Up))
             {
                 p2.Y--;
             }
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || state.IsKeyDown(Keys.Down))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Left))
+            { 
+                p2.X--;
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Down))
             {
                 p2.Y++;
             }
 
-            //
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Right))
+            {
+                p2.X++;
+            }
 
-            if (p1.Y < 0)
+            // MOVEMENT
+
+            if (p1.Y <= 0)
+            {
+                p1.Y = startY;
+                p1Score++;
+            }
+            else if (p1.Y >= startY)
             {
                 p1.Y = startY;
             }
-            else if (p1.Y > startY)
-            {
-                p1.Y = startY;
-            }
 
-            if (p2.Y < 0)
+            if (p2.Y <= 0)
             {
                 p2.Y = startY;
+                p2Score++;
             }
-            else if (p2.Y > startY)
+            else if (p2.Y >= startY)
             {
                 p2.Y = startY;
             }
 
-            //
-
+            // 
+             
             debrisTimer--;
             if (debrisTimer <= 0)
             {
                 debrisTimer = debrisDelay;
-                debrisLeft.Add(new Vector2(0, random.Next(0, 400)));
-                debrisRight.Add(new Vector2(800, random.Next(0, 400)));
+                debrisLeft.Add(new Vector2(0, random.Next(0, 420)));
+                debrisRight.Add(new Vector2(800, random.Next(0, 420)));
             }
 
             for (int i = 0; i < debrisLeft.Count; i++)
             {
                 debrisLeft[i] = debrisLeft[i] + new Vector2(2, 0);
-            }
+            } 
 
             for (int i = 0; i < debrisRight.Count; i++)
             {
@@ -245,15 +276,22 @@ namespace SpaceRace
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
+
+            var keyState = Keyboard.GetState();
+            var mouseState = Mouse.GetState();
+            var mousePosition = new Point(mouseState.X, mouseState.Y);
+
 
             sprites.Begin();
             if (isPlaying)
             {
                 sprites.Draw(skeppTexture, p1, Color.White);
                 sprites.Draw(skeppTexture, p2, Color.White);
-
                 sprites.Draw(timerTexture, spelTimer, Color.White);
+
+                sprites.DrawString(font, p1Score.ToString(), new Vector2(30,30), Color.White);
+                sprites.DrawString(font, p2Score.ToString(), new Vector2(770, 30), Color.White);
 
                 foreach (var debris in debrisLeft)
                 {
@@ -267,7 +305,16 @@ namespace SpaceRace
             }
             else
             {
-                sprites.DrawString(font, "Press ENTER to start!", new Vector2(250, 200), Color.White);
+                sprites.Draw(playDullTexture, playButtonBox, Color.White);
+                
+                if (playButtonBox.Contains(mousePosition))
+                {
+                    sprites.Draw(playActiveTexture, playButtonBox, Color.White);
+                    if (mouseState.LeftButton == ButtonState.Pressed)
+                    {
+                        isPlaying = true;
+                    }
+                }
             }
 
             sprites.End();
@@ -282,7 +329,10 @@ namespace SpaceRace
             p1.Y = startY;
             p2.X = p2StartX;
             p2.Y = startY;
-
+            isPlaying = false;
+            spelTimer.Y = 0;
+            p1Score = 0;
+            p2Score = 0;
         }
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
