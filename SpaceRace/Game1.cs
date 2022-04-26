@@ -7,6 +7,7 @@ namespace SpaceRace
 {
     internal class Game1 : Game
     {
+        #region Variables
         private GraphicsDeviceManager graphics;
         private SpriteBatch sprites;
         private SpriteFont font;
@@ -15,7 +16,6 @@ namespace SpaceRace
         private Texture2D timerTexture;
         private Texture2D playActiveTexture;
         private Texture2D playDullTexture;
-
         private Rectangle playButtonBox;
 
         private Vector2 p1;
@@ -37,6 +37,8 @@ namespace SpaceRace
         private bool p2Hit;
         private bool isPlaying;
         private bool active;
+
+        #endregion
 
         Random random = new Random();
         public Game1()
@@ -202,7 +204,7 @@ namespace SpaceRace
             p1Hit = false;
             p2Hit = false;
 
-            foreach (var debris in debrisLeft)
+            foreach (var debris in debrisLeft) //kolla om skepp 1 kolliderar med den debris som kommer från vänster
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -216,7 +218,7 @@ namespace SpaceRace
                 }
             }
 
-            foreach (var debris in debrisLeft)
+            foreach (var debris in debrisLeft) //kolla om skepp 2 kolliderar med den debris som kommer från vänster
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -230,7 +232,7 @@ namespace SpaceRace
                 }
             }
 
-            foreach (var debris in debrisRight)
+            foreach (var debris in debrisRight) //kolla om skepp 1 kolliderar med den debris som kommer från höger
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -244,7 +246,7 @@ namespace SpaceRace
                 }
             }
 
-            foreach (var debris in debrisRight)
+            foreach (var debris in debrisRight) //kolla om skepp 2 kolliderar med den debris som kommer från höger
             {
                 Rectangle debrisBox = new Rectangle((int)debris.X, (int)debris.Y, debrisTexture.Width, debrisTexture.Height);
 
@@ -258,13 +260,13 @@ namespace SpaceRace
                 }
             }
 
-            if (p1Hit)
+            if (p1Hit) //resetta positionen på skepp 1 om kollision är sant
             {
                 p1.X = p1StartX;
                 p1.Y = startY;
             }
 
-            if (p2Hit)
+            if (p2Hit) //resetta positionen på skepp 2 om kollision är sant
             {
                 p2.X = p2StartX;
                 p2.Y = startY;
@@ -290,10 +292,10 @@ namespace SpaceRace
                 sprites.Draw(skeppTexture, p2, Color.White);
                 sprites.Draw(timerTexture, spelTimer, Color.White);
 
-                sprites.DrawString(font, p1Score.ToString(), new Vector2(30,30), Color.White);
+                sprites.DrawString(font, p1Score.ToString(), new Vector2(30,30), Color.White); //score
                 sprites.DrawString(font, p2Score.ToString(), new Vector2(770, 30), Color.White);
 
-                foreach (var debris in debrisLeft)
+                foreach (var debris in debrisLeft) //rita upp all debris
                 {
                     sprites.Draw(debrisTexture, debris, Color.White);
                 }
@@ -305,12 +307,12 @@ namespace SpaceRace
             }
             else
             {
-                sprites.Draw(playDullTexture, playButtonBox, Color.White);
+                sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play texture upp
                 
-                if (playButtonBox.Contains(mousePosition))
+                if (playButtonBox.Contains(mousePosition)) //but texture till en som är mer ljus så att du ser att du håller över knappen
                 {
-                    sprites.Draw(playActiveTexture, playButtonBox, Color.White);
-                    if (mouseState.LeftButton == ButtonState.Pressed)
+                    sprites.Draw(playActiveTexture, playButtonBox, Color.White); 
+                    if (mouseState.LeftButton == ButtonState.Pressed) //om klick på knapp, starta spelet
                     {
                         isPlaying = true;
                     }
