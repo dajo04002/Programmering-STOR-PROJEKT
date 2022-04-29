@@ -2,6 +2,8 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 
 namespace SpaceRace
 {
@@ -25,6 +27,9 @@ namespace SpaceRace
         private List<Vector2> debrisLeft;
         private List<Vector2> debrisRight;
 
+        private SoundEffect engine;
+        private Song song;
+
         private int debrisTimer = 15;
         private int debrisDelay = 15;
         private int p1StartX = 250;
@@ -32,7 +37,8 @@ namespace SpaceRace
         private int startY = 445;
         private int p1Score = 0;
         private int p2Score = 0;
-        
+        private int vinnare;
+
         private bool p1Hit;
         private bool p2Hit;
         private bool isPlaying;
@@ -76,6 +82,8 @@ namespace SpaceRace
 
             playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
 
+            engine = Content.Load<SoundEffect>("engine");
+
             base.LoadContent();
         }
 
@@ -88,7 +96,7 @@ namespace SpaceRace
         {
             var keyState = Keyboard.GetState();
 
-            if(keyState.IsKeyDown(Keys.Enter) && !isPlaying)
+            if (keyState.IsKeyDown(Keys.Enter) && !isPlaying)
             {
                 isPlaying = true;
             }
@@ -111,11 +119,12 @@ namespace SpaceRace
                 Exit();
             }
 
-            //
+            #region Movement
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.W))
             {
                 p1.Y--;
+                engine.Play();
             }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.A))
@@ -139,7 +148,7 @@ namespace SpaceRace
             }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Left))
-            { 
+            {
                 p2.X--;
             }
 
@@ -153,8 +162,9 @@ namespace SpaceRace
                 p2.X++;
             }
 
-            // MOVEMENT
+            #endregion
 
+            #region Score/OutofBounds
             if (p1.Y <= 0)
             {
                 p1.Y = startY;
@@ -175,8 +185,11 @@ namespace SpaceRace
                 p2.Y = startY;
             }
 
-            // 
-             
+            vinnare = Winner(p1Score, p2Score);
+
+            #endregion
+
+            #region Debrisspawn
             debrisTimer--;
             if (debrisTimer <= 0)
             {
@@ -188,15 +201,16 @@ namespace SpaceRace
             for (int i = 0; i < debrisLeft.Count; i++)
             {
                 debrisLeft[i] = debrisLeft[i] + new Vector2(2, 0);
-            } 
+            }
 
             for (int i = 0; i < debrisRight.Count; i++)
             {
                 debrisRight[i] = debrisRight[i] + new Vector2(-2, 0);
             }
 
+            #endregion
 
-            //
+            #region Kollision
 
             Rectangle p1Box = new Rectangle((int)p1.X, (int)p1.Y, skeppTexture.Width, skeppTexture.Height);
             Rectangle p2Box = new Rectangle((int)p2.X, (int)p2.Y, skeppTexture.Width, skeppTexture.Height);
@@ -272,6 +286,13 @@ namespace SpaceRace
                 p2.Y = startY;
             }
 
+            #endregion
+
+            #region Övrigt
+            
+
+            #endregion
+
             base.Update(gameTime);
 
         }
@@ -292,7 +313,7 @@ namespace SpaceRace
                 sprites.Draw(skeppTexture, p2, Color.White);
                 sprites.Draw(timerTexture, spelTimer, Color.White);
 
-                sprites.DrawString(font, p1Score.ToString(), new Vector2(30,30), Color.White); //score
+                sprites.DrawString(font, p1Score.ToString(), new Vector2(30, 30), Color.White); //score
                 sprites.DrawString(font, p2Score.ToString(), new Vector2(770, 30), Color.White);
 
                 foreach (var debris in debrisLeft) //rita upp all debris
@@ -307,16 +328,31 @@ namespace SpaceRace
             }
             else
             {
-                sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play texture upp
-                
+                sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play knapp upp
+
                 if (playButtonBox.Contains(mousePosition)) //but texture till en som är mer ljus så att du ser att du håller över knappen
                 {
-                    sprites.Draw(playActiveTexture, playButtonBox, Color.White); 
+                    sprites.Draw(playActiveTexture, playButtonBox, Color.White);
                     if (mouseState.LeftButton == ButtonState.Pressed) //om klick på knapp, starta spelet
                     {
                         isPlaying = true;
                     }
                 }
+
+                if(vinnare == 1)
+                {
+                    sprites.DrawString(font, "Player 1 Wins", new Vector2(350, 200), Color.White);
+
+                }
+                else if(vinnare == 2)
+                {
+                    sprites.DrawString(font, "Player 2 Wins", new Vector2(350, 200), Color.White);
+                }
+                else if(vinnare ==3)
+                {
+                    sprites.DrawString(font, "Draw", new Vector2(350, 200), Color.White);
+                }
+                
             }
 
             sprites.End();
@@ -335,6 +371,24 @@ namespace SpaceRace
             spelTimer.Y = 0;
             p1Score = 0;
             p2Score = 0;
+
+        }
+
+        public static int Winner(int p1, int p2)
+        {
+            if(p1 > p2)
+            {
+                return 1;
+            }
+            else if(p1 < p2)
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+
         }
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
