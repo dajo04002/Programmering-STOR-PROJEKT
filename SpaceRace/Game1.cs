@@ -30,14 +30,15 @@ namespace SpaceRace2
         private SoundEffect engine;
         private Song song;
 
-        private int debrisTimer = 15;
-        private int debrisDelay = 15;
+        private int debrisTimer = 50; // första frequency
+        private int debrisDelay = 50; // frequency av debris, låst
         private int p1StartX = 250;
         private int p2StartX = 500;
         private int startY = 445;
         private int p1Score = 0;
         private int p2Score = 0;
-        private int vinnare;
+        private int p1ScoreAfter;
+        private int p2ScoreAfter;
 
         private bool p1Hit;
         private bool p2Hit;
@@ -60,7 +61,7 @@ namespace SpaceRace2
         {
             p1 = new Vector2(p1StartX, startY);
             p2 = new Vector2(p2StartX, startY);
-            spelTimer = new Vector2(380, 0);
+            spelTimer = new Vector2(GraphicsDevice.Viewport.Width/2 -10, GraphicsDevice.Viewport.Height);
 
             debrisLeft = new List<Vector2>();
             debrisRight = new List<Vector2>();
@@ -104,12 +105,12 @@ namespace SpaceRace2
                 return;
             }
 
-            if (spelTimer.Y > 480)
+            if (spelTimer.Y > GraphicsDevice.Viewport.Height) //om speltimern når slutet av skärmen, kalla på Reset() funktionen
             {
                 Reset();
             }
 
-            spelTimer = spelTimer + new Vector2(0, 0.15f);
+            spelTimer = spelTimer + new Vector2(0, 0.40f); //flytta texturen nedåt så att det ser ut som en spalt som rör sig nedåt
 
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Escape))
@@ -181,8 +182,6 @@ namespace SpaceRace2
             {
                 p2.Y = startY;
             }
-
-            vinnare = Winner(p1Score, p2Score);
 
             #endregion
 
@@ -327,7 +326,7 @@ namespace SpaceRace2
             {
                 sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play knapp upp
 
-                if (playButtonBox.Contains(mousePosition)) //but texture till en som är mer ljus så att du ser att du håller över knappen
+                if (playButtonBox.Contains(mousePosition)) //hover, but texture till en som är mer ljus så att du ser att du håller över knappen
                 {
                     sprites.Draw(playActiveTexture, playButtonBox, Color.White);
                     if (mouseState.LeftButton == ButtonState.Pressed) //om klick på knapp, starta spelet
@@ -336,13 +335,13 @@ namespace SpaceRace2
                     }
                 }
 
-                if(Winner(p1Score, p2Score) == 1)
+                if(Winner(p1ScoreAfter, p2ScoreAfter) == 1)
                     sprites.DrawString(font, "Player 1 Wins", new Vector2(350, 200), Color.White);
 
-                else if(Winner(p1Score, p2Score) == 2)
+                else if(Winner(p1ScoreAfter, p2ScoreAfter) == 2)
                     sprites.DrawString(font, "Player 2 Wins", new Vector2(350, 200), Color.White);
 
-                else if(Winner(p1Score, p2Score) == 3)
+                else if(Winner(p1ScoreAfter, p2ScoreAfter) == 3)
                     sprites.DrawString(font, "Draw", new Vector2(350, 200), Color.White);
             }
 
@@ -360,8 +359,11 @@ namespace SpaceRace2
             p2.Y = startY;
             isPlaying = false;
             spelTimer.Y = 0;
+            p1ScoreAfter = p1Score;
+            p2ScoreAfter = p2Score;
             p1Score = 0;
             p2Score = 0;
+
 
         }
 
@@ -373,9 +375,14 @@ namespace SpaceRace2
             else if (p1 < p2)
                 return 2;
 
-            else
+            else if (p1 == p2 & p1 != 0 & p2 != 0)
                 return 3;
+
+            else
+                return 0;
         }
+
+        #region PerPixelCollision
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
         {
@@ -420,5 +427,7 @@ namespace SpaceRace2
             }
             return false;
         }
+
+        #endregion
     }
 }
