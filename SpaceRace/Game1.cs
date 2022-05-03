@@ -5,11 +5,11 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 
-namespace SpaceRace
+namespace SpaceRace2
 {
     internal class Game1 : Game
     {
-        #region Variables
+        #region Variabler
         private GraphicsDeviceManager graphics;
         private SpriteBatch sprites;
         private SpriteFont font;
@@ -82,8 +82,6 @@ namespace SpaceRace
 
             playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
 
-            engine = Content.Load<SoundEffect>("engine");
-
             base.LoadContent();
         }
 
@@ -124,7 +122,6 @@ namespace SpaceRace
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.W))
             {
                 p1.Y--;
-                engine.Play();
             }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.A))
@@ -339,20 +336,14 @@ namespace SpaceRace
                     }
                 }
 
-                if(vinnare == 1)
-                {
+                if(Winner(p1Score, p2Score) == 1)
                     sprites.DrawString(font, "Player 1 Wins", new Vector2(350, 200), Color.White);
 
-                }
-                else if(vinnare == 2)
-                {
+                else if(Winner(p1Score, p2Score) == 2)
                     sprites.DrawString(font, "Player 2 Wins", new Vector2(350, 200), Color.White);
-                }
-                else if(vinnare ==3)
-                {
+
+                else if(Winner(p1Score, p2Score) == 3)
                     sprites.DrawString(font, "Draw", new Vector2(350, 200), Color.White);
-                }
-                
             }
 
             sprites.End();
@@ -376,19 +367,14 @@ namespace SpaceRace
 
         public static int Winner(int p1, int p2)
         {
-            if(p1 > p2)
-            {
+            if (p1 > p2)
                 return 1;
-            }
-            else if(p1 < p2)
-            {
-                return 2;
-            }
-            else
-            {
-                return 3;
-            }
 
+            else if (p1 < p2)
+                return 2;
+
+            else
+                return 3;
         }
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
