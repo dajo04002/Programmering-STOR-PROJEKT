@@ -28,10 +28,13 @@ namespace SpaceRace2
         private List<Vector2> debrisRight;
 
         private SoundEffect engine;
-        private Song song;
+        private Song music;
 
-        private int debrisTimer = 50; // första frequency
-        private int debrisDelay = 50; // frequency av debris, låst
+        private int debrisTimer = 20;
+        private int debrisDelay = 50; // frequency av debris, kan ändras med hjälp av att svårighetsgrad väljs
+        private int easy = 50;
+        private int medium = 25;
+        private int hard = 7;
         private int p1StartX = 250;
         private int p2StartX = 500;
         private int startY = 445;
@@ -39,11 +42,11 @@ namespace SpaceRace2
         private int p2Score = 0;
         private int p1ScoreAfter;
         private int p2ScoreAfter;
+        private string difficulty;
 
         private bool p1Hit;
         private bool p2Hit;
         private bool isPlaying;
-        private bool active;
 
         #endregion
 
@@ -66,6 +69,9 @@ namespace SpaceRace2
             debrisLeft = new List<Vector2>();
             debrisRight = new List<Vector2>();
 
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Volume = 0.1f;
+
             base.Initialize();
         }
 
@@ -83,6 +89,10 @@ namespace SpaceRace2
 
             playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
 
+            music = Content.Load<Song>("Music");
+            MediaPlayer.Play(music);
+
+
             base.LoadContent();
         }
 
@@ -94,6 +104,25 @@ namespace SpaceRace2
         protected override void Update(GameTime gameTime)
         {
             var keyState = Keyboard.GetState();
+
+            if (!isPlaying)
+            {
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D1))
+                    debrisDelay = easy;
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D2))
+                    debrisDelay = medium;
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D3))
+                    debrisDelay = hard;
+            }
+            if (debrisDelay == easy)
+                difficulty = "Easy";
+            else if (debrisDelay == medium)
+                difficulty = "Medium";
+            else if (debrisDelay == hard)
+                difficulty = "Hard";
+
+
+
 
             if (keyState.IsKeyDown(Keys.Enter) && !isPlaying)
             {
@@ -285,11 +314,10 @@ namespace SpaceRace2
             #endregion
 
             #region Övrigt
-            
 
             #endregion
 
-            base.Update(gameTime);
+                base.Update(gameTime);
 
         }
 
@@ -303,6 +331,9 @@ namespace SpaceRace2
 
 
             sprites.Begin();
+
+            sprites.DrawString(font, "Difficulty: " + difficulty, new Vector2(60, 40), Color.White);
+
             if (isPlaying)
             {
                 sprites.Draw(skeppTexture, p1, Color.White);
@@ -321,6 +352,8 @@ namespace SpaceRace2
                 {
                     sprites.Draw(debrisTexture, debris, Color.White);
                 }
+
+                
             }
             else
             {
@@ -335,7 +368,12 @@ namespace SpaceRace2
                     }
                 }
 
-                if(Winner(p1ScoreAfter, p2ScoreAfter) == 1)
+                sprites.DrawString(font, "Choose difficulty", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2), Color.White);
+                sprites.DrawString(font, "Easy = 1", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 20), Color.White);
+                sprites.DrawString(font, "Medium = 2", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 40), Color.White);
+                sprites.DrawString(font, "Hard = 3", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 60), Color.White);
+
+                if (Winner(p1ScoreAfter, p2ScoreAfter) == 1)
                     sprites.DrawString(font, "Player 1 Wins", new Vector2(350, 200), Color.White);
 
                 else if(Winner(p1ScoreAfter, p2ScoreAfter) == 2)
@@ -381,8 +419,8 @@ namespace SpaceRace2
             else
                 return 0;
         }
-
-        #region PerPixelCollision
+        //kod från Csharpskolan
+        #region PerPixelCollision 
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
         {
