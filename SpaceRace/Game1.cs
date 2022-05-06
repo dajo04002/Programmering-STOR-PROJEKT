@@ -31,7 +31,7 @@ namespace SpaceRace2
         private Song music;
 
         private int debrisTimer = 20;
-        private int debrisDelay = 50; // frequency av debris, kan ändras med hjälp av att svårighetsgrad väljs
+        private int debrisDelay = 7; // frequency av debris, kan ändras med hjälp av att svårighetsgrad väljs
         private int easy = 50;
         private int medium = 25;
         private int hard = 7;
@@ -108,21 +108,24 @@ namespace SpaceRace2
             if (!isPlaying)
             {
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D1))
+                {
                     debrisDelay = easy;
+                    difficulty = "Easy";
+                }
+                    
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D2))
+                {
                     debrisDelay = medium;
+                    difficulty = "Medium";
+                }
+                    
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D3))
+                {
                     debrisDelay = hard;
+                    difficulty = "Hard";
+                }
+                    
             }
-            if (debrisDelay == easy)
-                difficulty = "Easy";
-            else if (debrisDelay == medium)
-                difficulty = "Medium";
-            else if (debrisDelay == hard)
-                difficulty = "Hard";
-
-
-
 
             if (keyState.IsKeyDown(Keys.Enter) && !isPlaying)
             {
