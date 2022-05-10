@@ -12,7 +12,8 @@ namespace SpaceRace2
         #region Variabler
         private GraphicsDeviceManager graphics;
         private SpriteBatch sprites;
-        private SpriteFont font;
+        private SpriteFont consolas16;
+        private SpriteFont consolas30;
         private Texture2D skeppTexture;
         private Texture2D debrisTexture;
         private Texture2D timerTexture;
@@ -79,7 +80,9 @@ namespace SpaceRace2
         {
             sprites = new SpriteBatch(GraphicsDevice);
 
-            font = Content.Load<SpriteFont>("Consolas16");
+            consolas16 = Content.Load<SpriteFont>("Consolas16");
+            consolas30 = Content.Load<SpriteFont>("Consolas30");
+
             skeppTexture = Content.Load<Texture2D>("skepp");
             debrisTexture = Content.Load<Texture2D>("debris");
             timerTexture = Content.Load<Texture2D>("timer");
@@ -153,44 +156,16 @@ namespace SpaceRace2
             #region Movement
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.W))
-            {
                 p1.Y--;
-            }
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.A))
-            {
-                p1.X--;
-            }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.S))
-            {
                 p1.Y++;
-            }
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D))
-            {
-                p1.X++;
-            }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Up))
-            {
                 p2.Y--;
-            }
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Left))
-            {
-                p2.X--;
-            }
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Down))
-            {
                 p2.Y++;
-            }
-
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Right))
-            {
-                p2.X++;
-            }
 
             #endregion
 
@@ -321,7 +296,6 @@ namespace SpaceRace2
             #endregion
 
                 base.Update(gameTime);
-
         }
 
         protected override void Draw(GameTime gameTime)
@@ -335,7 +309,7 @@ namespace SpaceRace2
 
             sprites.Begin();
 
-            sprites.DrawString(font, "Difficulty: " + difficulty, new Vector2(60, 40), Color.White);
+            sprites.DrawString(consolas16, "Difficulty: " + difficulty, new Vector2(60, 40), Color.White);
 
             if (isPlaying)
             {
@@ -343,8 +317,8 @@ namespace SpaceRace2
                 sprites.Draw(skeppTexture, p2, Color.White);
                 sprites.Draw(timerTexture, spelTimer, Color.White);
 
-                sprites.DrawString(font, p1Score.ToString(), new Vector2(30, 30), Color.White); //score
-                sprites.DrawString(font, p2Score.ToString(), new Vector2(770, 30), Color.White);
+                sprites.DrawString(consolas16, p1Score.ToString(), new Vector2(30, 30), Color.White); //score
+                sprites.DrawString(consolas16, p2Score.ToString(), new Vector2(770, 30), Color.White);
 
                 foreach (var debris in debrisLeft) //rita upp all debris
                 {
@@ -371,19 +345,19 @@ namespace SpaceRace2
                     }
                 }
 
-                sprites.DrawString(font, "Choose difficulty", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2), Color.White);
-                sprites.DrawString(font, "Easy = 1", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 20), Color.White);
-                sprites.DrawString(font, "Medium = 2", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 40), Color.White);
-                sprites.DrawString(font, "Hard = 3", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 60), Color.White);
+                sprites.DrawString(consolas16, "Choose difficulty", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 80), Color.White);
+                sprites.DrawString(consolas16, "Easy = 1", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 100), Color.White);
+                sprites.DrawString(consolas16, "Medium = 2", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 120), Color.White);
+                sprites.DrawString(consolas16, "Hard = 3", new Vector2(GraphicsDevice.Viewport.Width / 2 - 70, GraphicsDevice.Viewport.Height / 2 + 140), Color.White);
 
                 if (Winner(p1ScoreAfter, p2ScoreAfter) == 1)
-                    sprites.DrawString(font, "Player 1 Wins", new Vector2(350, 200), Color.White);
+                    sprites.DrawString(consolas30, "Player 1 Wins", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
 
                 else if(Winner(p1ScoreAfter, p2ScoreAfter) == 2)
-                    sprites.DrawString(font, "Player 2 Wins", new Vector2(350, 200), Color.White);
+                    sprites.DrawString(consolas30, "Player 2 Wins", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
 
                 else if(Winner(p1ScoreAfter, p2ScoreAfter) == 3)
-                    sprites.DrawString(font, "Draw", new Vector2(350, 200), Color.White);
+                    sprites.DrawString(consolas30, "Draw", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
             }
 
             sprites.End();
