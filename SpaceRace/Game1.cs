@@ -19,11 +19,18 @@ namespace SpaceRace2
         private Texture2D timerTexture;
         private Texture2D playActiveTexture;
         private Texture2D playDullTexture;
+        private Texture2D volDotTexture;
+        private Texture2D volSliderTexture;
+
         private Rectangle playButtonBox;
+        private Rectangle volDotRect;
+        private Rectangle volSliderRect;
 
         private Vector2 p1;
         private Vector2 p2;
         private Vector2 spelTimer;
+        private Vector2 volDot;
+        private Vector2 volSlider;
 
         private List<Vector2> debrisLeft;
         private List<Vector2> debrisRight;
@@ -67,11 +74,14 @@ namespace SpaceRace2
             p2 = new Vector2(p2StartX, startY);
             spelTimer = new Vector2(GraphicsDevice.Viewport.Width/2 -10, GraphicsDevice.Viewport.Height);
 
+            volDot = new Vector2(GraphicsDevice.Viewport.Width - 50, 13);
+            volSlider = new Vector2(GraphicsDevice.Viewport.Width - 41, 25);
+
             debrisLeft = new List<Vector2>();
             debrisRight = new List<Vector2>();
 
             MediaPlayer.IsRepeating = true;
-            MediaPlayer.Volume = 0.1f;
+            MediaPlayer.Volume = 0.01f;
 
             base.Initialize();
         }
@@ -87,10 +97,14 @@ namespace SpaceRace2
             debrisTexture = Content.Load<Texture2D>("debris");
             timerTexture = Content.Load<Texture2D>("timer");
 
+            volDotTexture = Content.Load<Texture2D>("VolumeDot2");
+            volSliderTexture = Content.Load<Texture2D>("VolumeSlider");
             playActiveTexture = Content.Load<Texture2D>("playButtonActive");
             playDullTexture = Content.Load<Texture2D>("playButtonDull");
 
             playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
+            volDotRect = new Rectangle(GraphicsDevice.Viewport.Width - 50, 13, volDotTexture.Width, volDotTexture.Height);
+            volSliderRect = new Rectangle(GraphicsDevice.Viewport.Width - 41, 25,volSliderTexture.Width, volSliderTexture.Height);
 
             music = Content.Load<Song>("Music");
             MediaPlayer.Play(music);
@@ -107,6 +121,9 @@ namespace SpaceRace2
         protected override void Update(GameTime gameTime)
         {
             var keyState = Keyboard.GetState();
+            var mouseState = Mouse.GetState();
+            var mousePosition = new Point(mouseState.X, mouseState.Y);
+            var mousePositionVec = new Vector2(mouseState.X, mouseState.Y);
 
             if (!isPlaying)
             {
@@ -293,16 +310,27 @@ namespace SpaceRace2
 
             #region Övrigt
 
+            volDotRect = new Rectangle((int)volDot.X,(int)volDot.Y, volDotTexture.Width, volDotTexture.Height);
+            volSliderRect = new Rectangle((int)volSlider.X, (int)volSlider.Y, volSliderTexture.Width, volSliderTexture.Height);
+
+
+            if (volSliderRect.Contains(mousePosition))
+            {
+                if (mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    volDot = mousePositionVec;
+                }
+            }
+
             #endregion
 
-                base.Update(gameTime);
+            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            var keyState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
             var mousePosition = new Point(mouseState.X, mouseState.Y);
 
@@ -335,6 +363,10 @@ namespace SpaceRace2
             else
             {
                 sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play knapp upp
+
+                sprites.Draw(volSliderTexture, volSliderRect , Color.White);
+                sprites.Draw(volDotTexture, volDotRect, Color.White);
+                
 
                 if (playButtonBox.Contains(mousePosition)) //hover, but texture till en som är mer ljus så att du ser att du håller över knappen
                 {
