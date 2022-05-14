@@ -5,9 +5,9 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Media;
 
-namespace SpaceRace2
+namespace SpaceRace3
 {
-    internal class Game1 : Game
+    public class Game1 : Game
     {
         #region Variabler
         private GraphicsDeviceManager graphics;
@@ -35,7 +35,6 @@ namespace SpaceRace2
         private List<Vector2> debrisLeft;
         private List<Vector2> debrisRight;
 
-        private SoundEffect engine;
         private Song music;
 
         private int debrisTimer = 20;
@@ -50,16 +49,26 @@ namespace SpaceRace2
         private int p2Score = 0;
         private int p1ScoreAfter;
         private int p2ScoreAfter;
+        private int volDotBoundUp = 15;
+        private int volDotBoundDown = 102;
+
+        private const int volDotStartX = 800 - 50;
+
+        private float musicVolume;
+
         private string difficulty;
 
         private bool p1Hit;
         private bool p2Hit;
         private bool isPlaying;
 
-        #endregion
-
         Random random = new Random();
+
+        #endregion
+#pragma warning disable CS8618
         public Game1()
+#pragma warning restore CS8618
+
             : base()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -72,7 +81,7 @@ namespace SpaceRace2
         {
             p1 = new Vector2(p1StartX, startY);
             p2 = new Vector2(p2StartX, startY);
-            spelTimer = new Vector2(GraphicsDevice.Viewport.Width/2 -10, GraphicsDevice.Viewport.Height);
+            spelTimer = new Vector2(GraphicsDevice.Viewport.Width / 2 - 10, GraphicsDevice.Viewport.Height);
 
             volDot = new Vector2(GraphicsDevice.Viewport.Width - 50, 13);
             volSlider = new Vector2(GraphicsDevice.Viewport.Width - 41, 25);
@@ -103,8 +112,6 @@ namespace SpaceRace2
             playDullTexture = Content.Load<Texture2D>("playButtonDull");
 
             playButtonBox = new Rectangle(400 - 125, 30, playActiveTexture.Width, playActiveTexture.Height);
-            volDotRect = new Rectangle(GraphicsDevice.Viewport.Width - 50, 13, volDotTexture.Width, volDotTexture.Height);
-            volSliderRect = new Rectangle(GraphicsDevice.Viewport.Width - 41, 25,volSliderTexture.Width, volSliderTexture.Height);
 
             music = Content.Load<Song>("Music");
             MediaPlayer.Play(music);
@@ -123,7 +130,6 @@ namespace SpaceRace2
             var keyState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
             var mousePosition = new Point(mouseState.X, mouseState.Y);
-            var mousePositionVec = new Vector2(mouseState.X, mouseState.Y);
 
             if (!isPlaying)
             {
@@ -132,43 +138,69 @@ namespace SpaceRace2
                     debrisDelay = easy;
                     difficulty = "Easy";
                 }
-                    
+
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D2))
                 {
                     debrisDelay = medium;
                     difficulty = "Medium";
                 }
-                    
+
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.D3))
                 {
                     debrisDelay = hard;
                     difficulty = "Hard";
                 }
-                    
             }
 
-            if (keyState.IsKeyDown(Keys.Enter) && !isPlaying)
-            {
-                isPlaying = true;
-            }
+            #region Volymslider
+
+            volDotRect = new Rectangle((int)volDot.X, (int)volDot.Y, volDotTexture.Width, volDotTexture.Height);
+            volSliderRect = new Rectangle((int)volSlider.X, (int)volSlider.Y, volSliderTexture.Width, volSliderTexture.Height);
 
             if (!isPlaying)
             {
-                return;
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Up))
+                    volDot.Y--;
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Down))
+                    volDot.Y++;
             }
+
+            if (volDot.Y < volDotBoundUp)
+                volDot.Y = volDotBoundUp;
+            if (volDot.Y > volDotBoundDown)
+                volDot.Y = volDotBoundDown;
+
+            if (volSliderRect.Contains(mousePosition) | volDotRect.Contains(mousePosition))
+            {
+                if (mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    volDot = new Vector2(mouseState.X, mouseState.Y - 17);
+                    volDot.X = volDotStartX;
+                    if (volDot.Y < volDotBoundUp)
+                        volDot.Y = volDotBoundUp;
+                    if (volDot.Y > volDotBoundDown)
+                        volDot.Y = volDotBoundDown;
+                }
+            }
+
+            musicVolume = volDot.Y / 800;
+            MediaPlayer.Volume = musicVolume;
+
+            #endregion
+
+            if (keyState.IsKeyDown(Keys.Enter) && !isPlaying)
+                isPlaying = true;
+
+            if (!isPlaying)
+                return;
 
             if (spelTimer.Y > GraphicsDevice.Viewport.Height) //om speltimern når slutet av skärmen, kalla på Reset() funktionen
-            {
                 Reset();
-            }
 
-            spelTimer = spelTimer + new Vector2(0, 0.40f); //flytta texturen nedåt så att det ser ut som en spalt som rör sig nedåt
-
+            spelTimer = spelTimer + new Vector2(0, 0.40f); //flytta texturen nedåt så att det ser ut som en timer/spalt som rör sig nedåt
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyState.IsKeyDown(Keys.Escape))
-            {
                 Exit();
-            }
 
             #region Movement
 
@@ -308,22 +340,6 @@ namespace SpaceRace2
 
             #endregion
 
-            #region Övrigt
-
-            volDotRect = new Rectangle((int)volDot.X,(int)volDot.Y, volDotTexture.Width, volDotTexture.Height);
-            volSliderRect = new Rectangle((int)volSlider.X, (int)volSlider.Y, volSliderTexture.Width, volSliderTexture.Height);
-
-
-            if (volSliderRect.Contains(mousePosition))
-            {
-                if (mouseState.LeftButton == ButtonState.Pressed)
-                {
-                    volDot = mousePositionVec;
-                }
-            }
-
-            #endregion
-
             base.Update(gameTime);
         }
 
@@ -358,15 +374,17 @@ namespace SpaceRace2
                     sprites.Draw(debrisTexture, debris, Color.White);
                 }
 
-                
+
             }
             else
             {
                 sprites.Draw(playDullTexture, playButtonBox, Color.White); //om isPlaying är false, alltså om spelaren inte spelar så ritas en play knapp upp
 
-                sprites.Draw(volSliderTexture, volSliderRect , Color.White);
-                sprites.Draw(volDotTexture, volDotRect, Color.White);
-                
+                sprites.Draw(volSliderTexture, volSlider, Color.White);
+                sprites.Draw(volDotTexture, volDot, Color.White);
+
+                sprites.DrawString(consolas16, musicVolume.ToString(), new Vector2(5, 100), Color.White);
+
 
                 if (playButtonBox.Contains(mousePosition)) //hover, but texture till en som är mer ljus så att du ser att du håller över knappen
                 {
@@ -385,10 +403,10 @@ namespace SpaceRace2
                 if (Winner(p1ScoreAfter, p2ScoreAfter) == 1)
                     sprites.DrawString(consolas30, "Player 1 Wins", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
 
-                else if(Winner(p1ScoreAfter, p2ScoreAfter) == 2)
+                else if (Winner(p1ScoreAfter, p2ScoreAfter) == 2)
                     sprites.DrawString(consolas30, "Player 2 Wins", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
 
-                else if(Winner(p1ScoreAfter, p2ScoreAfter) == 3)
+                else if (Winner(p1ScoreAfter, p2ScoreAfter) == 3)
                     sprites.DrawString(consolas30, "Draw", new Vector2(GraphicsDevice.Viewport.Width / 2 - 150, 200), Color.White);
             }
 
@@ -410,8 +428,6 @@ namespace SpaceRace2
             p2ScoreAfter = p2Score;
             p1Score = 0;
             p2Score = 0;
-
-
         }
 
         public static int Winner(int p1, int p2)
@@ -428,7 +444,7 @@ namespace SpaceRace2
             else
                 return 0;
         }
-        //kod från Csharpskolan
+        //kod nedan från Csharpskolan
         #region PerPixelCollision 
 
         public static Rectangle Intersection(Rectangle r1, Rectangle r2)
