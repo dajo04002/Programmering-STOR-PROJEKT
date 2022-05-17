@@ -430,7 +430,7 @@ namespace SpaceRace3
             p2Score = 0;
         }
 
-        public static int Winner(int p1, int p2)
+        public static int Winner(int p1, int p2) //funktion som kollar vem som vann
         {
             if (p1 > p2)
                 return 1;
